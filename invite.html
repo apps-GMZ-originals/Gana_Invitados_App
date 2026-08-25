@@ -1,0 +1,114 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>MiApp · Invitación</title>
+<style>
+  :root { --blue:#1a237e; --green:#4caf50; --ink:#17223b; --muted:#68738a; --bg:#f5f6fa; }
+  * { box-sizing: border-box; }
+  body { margin:0; background:var(--bg); color:var(--ink); font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Arial,sans-serif; }
+  .wrap { max-width:420px; margin:0 auto; min-height:100vh; display:flex; flex-direction:column; }
+  header { background:var(--blue); color:#fff; padding:44px 24px 60px; text-align:center; border-bottom-left-radius:28px; border-bottom-right-radius:28px; }
+  .logo { height:52px; width:52px; border-radius:16px; background:#fff; color:var(--blue); font-weight:900; font-size:24px; line-height:52px; margin:0 auto 14px; }
+  header h1 { margin:0; font-size:22px; }
+  header p { margin:8px 0 0; opacity:.85; font-size:14px; }
+  main { flex:1; padding:0 22px 40px; margin-top:-38px; }
+  .card { background:#fff; border-radius:18px; padding:24px; box-shadow:0 6px 24px #17223b14; margin-bottom:16px; }
+  .status { display:flex; align-items:center; gap:10px; color:var(--muted); font-size:14px; }
+  .spinner { width:16px; height:16px; border-radius:50%; border:2px solid #d8dbe6; border-top-color:var(--blue); animation:spin 0.8s linear infinite; }
+  @keyframes spin { to { transform:rotate(360deg); } }
+  .codeLabel { font-size:11px; font-weight:800; letter-spacing:1px; color:var(--muted); }
+  .code { font-family:'Courier New',monospace; font-size:34px; font-weight:900; color:var(--blue); letter-spacing:3px; text-align:center; margin:10px 0 16px; }
+  button, a.btn { display:block; width:100%; text-align:center; border:0; border-radius:12px; padding:15px; font-weight:800; font-size:15px; text-decoration:none; cursor:pointer; margin-top:10px; font-family:inherit; }
+  .primary { background:var(--green); color:#fff; }
+  .secondary { background:#eef0ff; color:var(--blue); }
+  .hint { font-size:13px; color:var(--muted); line-height:1.5; margin-top:14px; }
+  .hidden { display:none; }
+  .toast { position:fixed; left:50%; bottom:28px; transform:translateX(-50%); background:var(--ink); color:#fff; padding:10px 18px; border-radius:99px; font-size:13px; opacity:0; transition:opacity .2s; pointer-events:none; }
+  .toast.show { opacity:1; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div class="logo">M</div>
+    <h1>Te invitaron a MiApp</h1>
+    <p>Crece invitando y gana dinero</p>
+  </header>
+  <main>
+    <div class="card">
+      <div id="checking" class="status"><div class="spinner"></div>Buscando la app instalada…</div>
+
+      <div id="download" class="hidden">
+        <p class="codeLabel">TU CÓDIGO DE INVITACIÓN</p>
+        <p id="codeValue" class="code">------</p>
+        <button id="copyBtn" class="secondary">📋 Copiar código</button>
+        <a id="downloadBtn" class="btn primary" href="#">⬇️ Descargar la app (APK)</a>
+        <p class="hint">
+          1. Descarga e instala el APK (puede pedirte permitir "orígenes desconocidos" la primera vez).<br/>
+          2. Abre MiApp y toca <b>Registrarme</b>.<br/>
+          3. Pega tu código de invitación cuando te lo pida.
+        </p>
+      </div>
+
+      <div id="noCode" class="hidden">
+        <p class="hint" style="margin-top:0;">Este enlace no trae un código de invitación válido. Puedes descargar la app igual y registrarte sin invitación.</p>
+        <a id="downloadBtnPlain" class="btn primary" href="#">⬇️ Descargar la app (APK)</a>
+      </div>
+    </div>
+  </main>
+</div>
+<div id="toast" class="toast">Código copiado</div>
+
+<script>
+  // ====== CONFIGURA ESTOS DOS VALORES ======
+  // Enlace directo al APK, ej: un asset de un Release de GitHub:
+  // https://github.com/usuario/repo/releases/download/v1.0.0/miapp.apk
+  const APK_URL = 'https://github.com/TU_USUARIO/TU_REPO/releases/download/v1.0.0/miapp.apk';
+  // Esquema que usa tu app para deep links (debe coincidir con app.json / expo-router)
+  const APP_SCHEME = 'miapp';
+  // ==========================================
+
+  const params = new URLSearchParams(window.location.search);
+  const code = (params.get('ref') || '').trim().toUpperCase();
+  const hasCode = /^[A-Z0-9]{6}$/.test(code);
+
+  document.getElementById('downloadBtn').href = APK_URL;
+  document.getElementById('downloadBtnPlain').href = APK_URL;
+
+  function showDownloadUI() {
+    document.getElementById('checking').classList.add('hidden');
+    if (hasCode) {
+      document.getElementById('codeValue').textContent = code;
+      document.getElementById('download').classList.remove('hidden');
+    } else {
+      document.getElementById('noCode').classList.remove('hidden');
+    }
+  }
+
+  if (hasCode) {
+    // Si la app ya está instalada, este esquema la abre directo con el código.
+    // Si no está instalada, el navegador simplemente no hace nada y, tras un
+    // instante, mostramos la pantalla de descarga.
+    let volvio = true;
+    window.addEventListener('blur', () => { volvio = false; });
+    window.location.href = `${APP_SCHEME}://paywall?ref=${encodeURIComponent(code)}`;
+    setTimeout(() => { if (volvio) showDownloadUI(); }, 1200);
+  } else {
+    showDownloadUI();
+  }
+
+  document.getElementById('copyBtn')?.addEventListener('click', async () => {
+    try {
+      await navigator.clipboard.writeText(code);
+      const toast = document.getElementById('toast');
+      toast.classList.add('show');
+      setTimeout(() => toast.classList.remove('show'), 1600);
+    } catch {
+      alert('Tu código es: ' + code);
+    }
+  });
+</script>
+</body>
+</html>
