@@ -59,7 +59,7 @@
     transform:translate(-50%,-44%) rotate(-7deg);
     background-image:url('adaptive-icon.png');
     background-repeat:no-repeat; background-position:center; background-size:contain;
-    opacity:.85; mix-blend-mode:lighten;
+    opacity:.45; mix-blend-mode:lighten;
   }
   .hero__watermark--ghost{
     position:absolute; z-index:0; pointer-events:none;
@@ -67,7 +67,15 @@
     transform:rotate(11deg);
     background-image:url('adaptive-icon.png');
     background-repeat:no-repeat; background-position:center; background-size:contain;
-    opacity:.5; mix-blend-mode:lighten;
+    opacity:.28; mix-blend-mode:lighten;
+  }
+  /* Capa oscura detrás del titular: sin esto, el patrón del logo compite
+     con el texto y lo hace ilegible. Se ubica entre la marca de agua (z:0)
+     y el contenido (z:2), y solo cubre la zona donde va el texto. */
+  .hero__scrim{
+    position:absolute; z-index:1; pointer-events:none;
+    left:-10%; right:-10%; top:26%; bottom:0;
+    background:radial-gradient(60% 90% at 50% 35%, rgba(5,24,54,.72) 0%, rgba(5,24,54,.5) 45%, rgba(5,24,54,0) 78%);
   }
   .hero__top{ position:relative; z-index:2; display:flex; align-items:center; justify-content:space-between; }
   .brandmark{ display:flex; align-items:center; gap:10px; }
@@ -100,9 +108,10 @@
   .eyebrow{
     display:inline-block; font-family:'IBM Plex Mono',monospace; font-size:11px; font-weight:600;
     letter-spacing:.14em; text-transform:uppercase; color:#BFF0D2; margin-bottom:10px;
+    text-shadow:0 2px 10px rgba(5,10,30,.7);
   }
-  .hero__title{ font-size:26px; line-height:1.28; font-weight:700; max-width:320px; margin:0 auto; }
-  .hero__sub{ font-size:14px; color:#C7CCEB; margin-top:10px; line-height:1.55; max-width:300px; margin-left:auto; margin-right:auto; }
+  .hero__title{ font-size:26px; line-height:1.28; font-weight:700; max-width:320px; margin:0 auto; text-shadow:0 2px 18px rgba(5,10,30,.65), 0 1px 2px rgba(5,10,30,.8); }
+  .hero__sub{ font-size:14px; color:#E4E7F7; margin-top:10px; line-height:1.55; max-width:300px; margin-left:auto; margin-right:auto; text-shadow:0 2px 12px rgba(5,10,30,.6); }
 
   /* ---------- MAIN CONTENT ---------- */
   main{ flex:1; padding:0 20px 28px; margin-top:-56px; position:relative; z-index:3; }
@@ -215,6 +224,7 @@
   <header class="hero">
     <div class="hero__watermark" aria-hidden="true"></div>
     <div class="hero__watermark--ghost" aria-hidden="true"></div>
+    <div class="hero__scrim" aria-hidden="true"></div>
 
     <div class="hero__top">
       <div class="brandmark">
